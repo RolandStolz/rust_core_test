@@ -14,3 +14,4 @@ build-backend = "maturin"
 
 [tool.maturin]
 features = ["python"]
+python-source = "python"  # directory name

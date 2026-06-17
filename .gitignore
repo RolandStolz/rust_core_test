@@ -1,7 +1,10 @@
 /target
 
 __pycache__
+/cr_core.pyi
 Cargo.lock
 uv.lock
 .venv
 .zed
+
+python/cr_core/cr_core.cpython*
