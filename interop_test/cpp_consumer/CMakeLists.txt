@@ -30,10 +30,17 @@ execute_process(
 )
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(cpp_consumer MODULE src/cpp_consumer.cpp)
+# --- Core logic layer: plain functions over cr_core structs, no Python ----------
 # CXXBRIDGE_DIR: cr_core/src/bindings/cpp.rs.h + rust/cxx.h.
 # CORE_ROOT/cpp/include: cr_core/demo.h, which the generated header #includes.
-target_include_directories(cpp_consumer PRIVATE "${CXXBRIDGE_DIR}" "${CORE_ROOT}/cpp/include")
+add_library(cpp_consumer_logic STATIC src/logic.cpp)
+target_compile_features(cpp_consumer_logic PUBLIC cxx_std_17)
+set_property(TARGET cpp_consumer_logic PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_include_directories(cpp_consumer_logic PUBLIC "${CXXBRIDGE_DIR}" "${CORE_ROOT}/cpp/include")
+
+# --- nanobind binding layer: capsule pointer extraction, delegates to the logic --
+nanobind_add_module(cpp_consumer MODULE src/bindings.cpp)
+target_link_libraries(cpp_consumer PRIVATE cpp_consumer_logic)
 
 if(SKBUILD)
     install(TARGETS cpp_consumer LIBRARY DESTINATION .)

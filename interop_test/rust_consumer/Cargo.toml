@@ -9,6 +9,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = "0.29.0"
-# THE core crate (rust_core_test). Default features -> plain #[repr(C)] types +
-# capsule-name consts only (no `python`/`cpp` features pulled in).
-cr_core = { path = "../.." }
+# THE core crate (rust_core_test). `pyref` provides the reusable zero-copy borrow
+# types (PointRef, …) — this crate adds no FFI plumbing of its own.
+cr_core = { path = "../..", features = ["pyref"] }

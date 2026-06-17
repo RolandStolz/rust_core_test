@@ -10,6 +10,12 @@ mod bindings;
 
 pub use bindings::cpp::ffi::{Lanelet, Point, State};
 
+/// Reusable zero-copy borrow types for downstream PyO3 consumers (`pyref` feature).
+#[cfg(feature = "pyref")]
+pub use bindings::pyref::{
+    LaneletRef, LaneletRefMut, PointRef, PointRefMut, StateRef, StateRefMut,
+};
+
 /// `PyCapsule` names act as the cross-module **type tag** for the zero-copy handoff
 /// in `interop_test`: `PyCapsule_GetPointer` validates the name and refuses a
 /// mismatched capsule. CPython does not copy the name, so it must be `'static`;
