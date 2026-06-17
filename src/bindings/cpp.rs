@@ -1,25 +1,24 @@
-//! C++ interop via [`cxx`].
+//! Canonical data structures + C++ interop, via [`cxx`].
 //!
-//! The structs declared inside the `#[cxx::bridge]` module below are *shared*
-//! types: `cxx` generates both the Rust definition and a matching C++ struct, so
-//! a `cr_core::Point` / `State` / `Lanelet` can be constructed and read on either
-//! side and passed across the boundary by value.
+//! The structs declared inside the `#[cxx::bridge]` module below are the **single
+//! source of truth**: cxx generates both the (repr-C, layout-stable) Rust definition
+//! and a matching C++ struct. They are re-exported from the crate root (`crate::Point`
+//! …), so PyO3 wrappers and the zero-copy interop use the *same* types — no parallel
+//! definitions, no `From` conversions.
 //!
-//! They mirror the plain-Rust core types in [`crate`]; `From` impls convert
-//! between the two so the core logic stays free of any FFI concerns (the same way
-//! [`super::python`] wraps them for PyO3).
+//! Inherent methods (`Point::new` …) are written in normal `impl` blocks outside the
+//! bridge. The `extern "C++"` block is gated behind the `cpp` feature so non-C++
+//! builds (pyo3-only, `cargo test`, the `main` bin) don't reference a C++ symbol.
 
 #[cxx::bridge(namespace = "cr_core")]
 pub mod ffi {
-    /// Mirror of [`crate::Point`].
-    #[derive(Clone, Debug)]
+    #[derive(Debug, Copy, Clone)]
     struct Point {
         x: f64,
         y: f64,
     }
 
-    /// Mirror of [`crate::State`].
-    #[derive(Clone, Debug)]
+    #[derive(Debug, Copy, Clone)]
     struct State {
         position: Point,
         orientation: f64,
@@ -27,8 +26,7 @@ pub mod ffi {
         time: usize,
     }
 
-    /// Mirror of [`crate::Lanelet`].
-    #[derive(Clone, Debug)]
+    #[derive(Debug, Clone)]
     struct Lanelet {
         left_bound: Vec<Point>,
         right_bound: Vec<Point>,
@@ -40,78 +38,50 @@ pub mod ffi {
         fn create_dummy_lanelet() -> Lanelet;
     }
 
+    #[cfg(feature = "cpp")]
     unsafe extern "C++" {
         include!("cr_core/demo.h");
 
         /// Example C++ consumer of the shared structs: averages every bound
-        /// point of a `Lanelet`. Implemented in `cpp/demo.cc`.
+        /// point of a `Lanelet`. Implemented in `cpp/src/demo.cpp`.
         fn lanelet_centroid(lanelet: &Lanelet) -> Point;
     }
 }
 
-use crate::{Lanelet, Point, State};
-
-impl From<Point> for ffi::Point {
-    fn from(p: Point) -> Self {
-        Self { x: p.x, y: p.y }
+impl ffi::Point {
+    pub fn new(x: f64, y: f64) -> Self {
+        Self { x, y }
     }
 }
 
-impl From<ffi::Point> for Point {
-    fn from(p: ffi::Point) -> Self {
-        Self { x: p.x, y: p.y }
-    }
-}
-
-impl From<State> for ffi::State {
-    fn from(s: State) -> Self {
+impl ffi::State {
+    pub fn new(position: ffi::Point, orientation: f64, velocity: f64, time: usize) -> Self {
         Self {
-            position: s.position.into(),
-            orientation: s.orientation,
-            velocity: s.velocity,
-            time: s.time,
+            position,
+            orientation,
+            velocity,
+            time,
         }
     }
 }
 
-impl From<ffi::State> for State {
-    fn from(s: ffi::State) -> Self {
+impl ffi::Lanelet {
+    pub fn new(left_bound: Vec<ffi::Point>, right_bound: Vec<ffi::Point>, id: usize) -> Self {
         Self {
-            position: s.position.into(),
-            orientation: s.orientation,
-            velocity: s.velocity,
-            time: s.time,
-        }
-    }
-}
-
-impl From<Lanelet> for ffi::Lanelet {
-    fn from(l: Lanelet) -> Self {
-        Self {
-            left_bound: l.left_bound.into_iter().map(Into::into).collect(),
-            right_bound: l.right_bound.into_iter().map(Into::into).collect(),
-            id: l.id,
-        }
-    }
-}
-
-impl From<ffi::Lanelet> for Lanelet {
-    fn from(l: ffi::Lanelet) -> Self {
-        Self {
-            left_bound: l.left_bound.into_iter().map(Into::into).collect(),
-            right_bound: l.right_bound.into_iter().map(Into::into).collect(),
-            id: l.id,
+            left_bound,
+            right_bound,
+            id,
         }
     }
 }
 
 fn create_dummy_lanelet() -> ffi::Lanelet {
-    let left_bound = vec![Point::new(0.0, 0.0), Point::new(1.0, 0.0)];
-    let right_bound = vec![Point::new(0.0, 1.0), Point::new(1.0, 1.0)];
-    Lanelet::new(left_bound, right_bound, 1).into()
+    let left_bound = vec![ffi::Point::new(0.0, 0.0), ffi::Point::new(1.0, 0.0)];
+    let right_bound = vec![ffi::Point::new(0.0, 1.0), ffi::Point::new(1.0, 1.0)];
+    ffi::Lanelet::new(left_bound, right_bound, 1)
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "cpp"))]
 mod tests {
     use super::{create_dummy_lanelet, ffi};
 

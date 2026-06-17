@@ -1,53 +1,20 @@
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct Point {
-    pub x: f64,
-    pub y: f64,
-}
+//! `cr_core` — the Rust core.
+//!
+//! The data structures `Point`/`State`/`Lanelet` are defined **once**, as cxx shared
+//! structs in [`bindings::cpp`], and re-exported here. That single definition serves
+//! every consumer: the PyO3 wrappers ([`bindings::python`]), the zero-copy interop
+//! (`interop_test/`), and C++ (cxx generates a matching struct + header). No parallel
+//! definitions, no conversions.
 
-impl Point {
-    pub fn new(x: f64, y: f64) -> Self {
-        Self { x, y }
-    }
-}
-
-#[repr(C)]
-#[derive(Debug, Clone)]
-pub struct Lanelet {
-    pub left_bound: Vec<Point>,
-    pub right_bound: Vec<Point>,
-    pub id: usize,
-}
-
-impl Lanelet {
-    pub fn new(left_bound: Vec<Point>, right_bound: Vec<Point>, id: usize) -> Self {
-        Self {
-            left_bound,
-            right_bound,
-            id,
-        }
-    }
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct State {
-    pub position: Point,
-    pub orientation: f64,
-    pub velocity: f64,
-    pub time: usize,
-}
-
-impl State {
-    pub fn new(position: Point, orientation: f64, velocity: f64, time: usize) -> Self {
-        Self {
-            position,
-            orientation,
-            velocity,
-            time,
-        }
-    }
-}
-
-#[cfg(any(feature = "python", feature = "cpp"))]
 mod bindings;
+
+pub use bindings::cpp::ffi::{Lanelet, Point, State};
+
+/// `PyCapsule` names act as the cross-module **type tag** for the zero-copy handoff
+/// in `interop_test`: `PyCapsule_GetPointer` validates the name and refuses a
+/// mismatched capsule. CPython does not copy the name, so it must be `'static`;
+/// producer (this crate built with `python`) and consumer (this crate as a plain
+/// dependency) reference these same consts, guaranteeing the names match.
+pub const POINT_CAPSULE: &core::ffi::CStr = c"cr_core.Point";
+pub const STATE_CAPSULE: &core::ffi::CStr = c"cr_core.State";
+pub const LANELET_CAPSULE: &core::ffi::CStr = c"cr_core.Lanelet";

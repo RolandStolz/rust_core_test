@@ -30,6 +30,6 @@ set(CXXBRIDGE_DIR "${CMAKE_SOURCE_DIR}/target/cxxbridge")
 add_executable(cpp_demo examples/main.cpp)
 target_link_libraries(cpp_demo PRIVATE cr_core)
 target_include_directories(cpp_demo PRIVATE
-  "${CMAKE_SOURCE_DIR}/include"
+  "${CMAKE_SOURCE_DIR}/cpp/include"
   "${CXXBRIDGE_DIR}"
 )

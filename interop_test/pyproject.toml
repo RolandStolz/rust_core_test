@@ -1,0 +1,15 @@
+[project]
+name = "interop-test"
+version = "0.1.0"
+description = "Driver: zero-copy access to a Rust core's objects from a separate PyO3 extension."
+requires-python = ">=3.13"
+dependencies = ["cr_core", "rust_consumer", "cpp_consumer"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+# The producer python module IS the real core crate, built with its `python` feature.
+cr_core = { path = ".." }
+rust_consumer = { path = "rust_consumer" }
+cpp_consumer = { path = "cpp_consumer" }

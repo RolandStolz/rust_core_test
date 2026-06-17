@@ -1,0 +1,14 @@
+[package]
+name = "rust_consumer"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "rust_consumer"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.29.0"
+# THE core crate (rust_core_test). Default features -> plain #[repr(C)] types +
+# capsule-name consts only (no `python`/`cpp` features pulled in).
+cr_core = { path = "../.." }

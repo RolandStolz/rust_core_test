@@ -1,5 +1,6 @@
-from cr_core import Point, State, Lanelet
+from cr_core import Point, Lanelet
 import cr_core
+
 
 def main():
     print(Point.__name__)
@@ -11,7 +12,7 @@ def main():
     a.x = 5.0
     print(a.x)
 
-    lanelet = cr_core.create_dummy_lanelet()
+    lanelet: Lanelet = cr_core.create_dummy_lanelet()
     print(lanelet)
 
 

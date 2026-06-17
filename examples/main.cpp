@@ -9,6 +9,10 @@ int main() {
   std::cout << "lanelet id = " << lanelet.id << "\n";
   std::cout << "left bound points = " << lanelet.left_bound.size() << "\n";
 
+  for (const auto &p : lanelet.left_bound) {
+    std::printf("x: %f y: %f\n", p.x, p.y);
+  }
+
   // C++ function reading the shared struct's fields.
   cr_core::Point c = cr_core::lanelet_centroid(lanelet);
   std::cout << "centroid = (" << c.x << ", " << c.y << ")\n";

@@ -11,3 +11,5 @@ python/cr_core/cr_core.cpython*
 
 build
 build-cpp
+.cache
+.claude

@@ -1,0 +1,14 @@
+[project]
+name = "cpp_consumer"
+version = "0.1.0"
+description = "C++/nanobind consumer that borrows cr_core objects zero-copy via cxx structs."
+requires-python = ">=3.13"
+dependencies = ["nanobind>=2.9.2"]
+
+[build-system]
+requires = ["scikit-build-core>=0.11.6", "nanobind>=2.9.2"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+minimum-version = "0.11"
+build-dir = "build/{wheel_tag}"
