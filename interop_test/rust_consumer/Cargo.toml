@@ -8,7 +8,7 @@ name = "rust_consumer"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.29.0"
+pyo3 = { version = "0.29.0", features = ["experimental-inspect"] }
 # THE core crate (rust_core_test). `pyref` provides the reusable zero-copy borrow
 # types (PointRef, …) — this crate adds no FFI plumbing of its own.
 cr_core = { path = "../..", features = ["pyref"] }

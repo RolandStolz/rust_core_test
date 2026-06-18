@@ -13,6 +13,8 @@ int main() {
     std::printf("x: %f y: %f\n", p.x, p.y);
   }
 
+  lanelet.left_bound.emplace_back(cr_core::Point{1.0, 2.0});
+
   // C++ function reading the shared struct's fields.
   cr_core::Point c = cr_core::lanelet_centroid(lanelet);
   std::cout << "centroid = (" << c.x << ", " << c.y << ")\n";

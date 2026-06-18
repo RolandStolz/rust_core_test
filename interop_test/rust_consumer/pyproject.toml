@@ -10,3 +10,5 @@ build-backend = "maturin"
 
 [tool.maturin]
 module-name = "rust_consumer"
+# A top-level `rust_consumer.pyi` next to pyproject is shipped beside the extension.
+# Regenerate with: maturin generate-stubs --out .

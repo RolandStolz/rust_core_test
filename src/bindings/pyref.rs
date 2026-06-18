@@ -48,6 +48,10 @@ macro_rules! cr_ref {
 
         impl<'py> FromPyObject<'_, 'py> for $Ref<'py> {
             type Error = PyErr;
+            // Tell stub generators (pyo3 experimental-inspect) the Python argument
+            // type is `cr_core.<T>`, instead of the default `Incomplete`.
+            const INPUT_TYPE: pyo3::inspect::PyStaticExpr =
+                pyo3::type_hint_identifier!("cr_core", stringify!($T));
             fn extract(obj: pyo3::Borrowed<'_, 'py, PyAny>) -> Result<Self, PyErr> {
                 let ptr = unsafe { capsule_ptr(obj, $cap)? } as *const $T;
                 Ok(Self(unsafe { &*ptr }))
@@ -65,6 +69,8 @@ macro_rules! cr_ref {
 
         impl<'py> FromPyObject<'_, 'py> for $RefMut<'py> {
             type Error = PyErr;
+            const INPUT_TYPE: pyo3::inspect::PyStaticExpr =
+                pyo3::type_hint_identifier!("cr_core", stringify!($T));
             fn extract(obj: pyo3::Borrowed<'_, 'py, PyAny>) -> Result<Self, PyErr> {
                 let ptr = unsafe { capsule_ptr(obj, $cap)? } as *mut $T;
                 Ok(Self(unsafe { &mut *ptr }))

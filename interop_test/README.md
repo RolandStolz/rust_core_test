@@ -106,6 +106,22 @@ example that consumes them. Note the two pyo3 features are split on purpose — 
 must NOT pull in the producer's `#[pymodule]`, or a consumer would link a stray
 `PyInit_cr_core` into its own extension.
 
+## Type stubs (.pyi) for the consumers
+The capsule method erases the argument type (consumers take a generic extractor —
+pyo3 `PointRef`, nanobind `nb::handle`), so by default stub generators emit
+`Incomplete`/`object`. Each side has a hook to recover the precise `cr_core.*` type:
+
+- **rust_consumer (pyo3):** `cr_core`'s `pyref` Refs override `FromPyObject::INPUT_TYPE`
+  (`= type_hint_identifier!("cr_core", "Point")`, behind `experimental-inspect`), so
+  `maturin generate-stubs` emits `def print_point(p: Point) -> int` with
+  `from cr_core import Point`. The stub ships as `rust_consumer.pyi` (next to pyproject).
+- **cpp_consumer (nanobind):** each `m.def` carries `nb::sig("def print_point(point:
+  cr_core.Point) -> int")`; `nanobind_add_stub` (CMake) emits `cpp_consumer.pyi` with
+  `import cr_core`.
+
+Regenerate: `maturin generate-stubs --out .` (rust_consumer) / rebuild (cpp_consumer's
+stub is a build step). Both end up typed as `cr_core.Point/State/Lanelet`.
+
 ## When you would NOT need any of this
 If the consuming code can live in the **same** extension module as the core's pyclasses,
 take a native `PyRef<'_, PyPoint>` — zero `unsafe`, fully supported. The capsule/pointer

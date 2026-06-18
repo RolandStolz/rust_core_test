@@ -42,6 +42,16 @@ target_include_directories(cpp_consumer_logic PUBLIC "${CXXBRIDGE_DIR}" "${CORE_
 nanobind_add_module(cpp_consumer MODULE src/bindings.cpp)
 target_link_libraries(cpp_consumer PRIVATE cpp_consumer_logic)
 
+# --- Type stub (.pyi) generated from the compiled module ------------------------
+nanobind_add_stub(
+    cpp_consumer_stub
+    MODULE cpp_consumer
+    OUTPUT cpp_consumer.pyi
+    PYTHON_PATH $<TARGET_FILE_DIR:cpp_consumer>
+    DEPENDS cpp_consumer
+)
+
 if(SKBUILD)
     install(TARGETS cpp_consumer LIBRARY DESTINATION .)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/cpp_consumer.pyi" DESTINATION .)
 endif()
